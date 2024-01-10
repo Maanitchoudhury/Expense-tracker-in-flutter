@@ -1,3 +1,4 @@
+import 'package:expense_tracker/expense.dart';
 import 'package:expense_tracker/modals/expenses.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -7,7 +8,9 @@ final formatedDate = DateFormat.yMd();
 Categories selectedCategory = Categories.food;
 
 class NewExpense extends StatefulWidget {
-  const NewExpense({super.key});
+  const NewExpense({super.key, required this.uponAddedExpense});
+
+  final void Function(Expensess expenses) uponAddedExpense;
   @override
   State<NewExpense> createState() {
     return _NewExpense();
@@ -65,6 +68,11 @@ class _NewExpense extends State<NewExpense> {
       );
       return;
     }
+    widget.uponAddedExpense(Expensess(
+        name: expenseController.text,
+        amount: enteredAmount,
+        date: _pickedDate!,
+        categories: selectedCategory));
   }
 
   @override
@@ -140,6 +148,8 @@ class _NewExpense extends State<NewExpense> {
                     onPressed: () {
                       debugPrint(expenseController.text);
                       debugPrint(amountController.text);
+                      submittedData();
+                      Navigator.pop(context);
                     },
                     child: const Text("save"),
                   ),
