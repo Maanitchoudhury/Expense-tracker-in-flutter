@@ -1,5 +1,6 @@
 import 'package:expense_tracker/expenselist.dart';
 import 'package:expense_tracker/new_expense.dart';
+import 'package:expense_tracker/widget/chart.dart';
 import 'package:flutter/material.dart';
 import 'package:expense_tracker/modals/expenses.dart';
 
@@ -37,6 +38,7 @@ class _Expenses extends State<Expenses> {
 
   void inputForExpenses() {
     showModalBottomSheet(
+        isScrollControlled: false,
         context: context,
         builder: (ctx) => NewExpense(uponAddedExpense: expenseCard));
   }
@@ -47,23 +49,66 @@ class _Expenses extends State<Expenses> {
     });
   }
 
+  void removeExpense(Expensess expenses) {
+    final expenseIndex = _registeredExpenses.indexOf(expenses);
+    setState(() {
+      _registeredExpenses.remove(expenses);
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        duration: const Duration(seconds: 3),
+        content: const Text("Expense deleted"),
+        action: SnackBarAction(
+          label: "Undo",
+          onPressed: () {
+            setState(
+              () {
+                _registeredExpenses.insert(expenseIndex, expenses);
+              },
+            );
+          },
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    var width = MediaQuery.of(context).size.width;
+    Widget initialScreen = const Center(
+      child: Text("enter your expense"),
+    );
+
+    if (_registeredExpenses.isNotEmpty) {
+      initialScreen = ExpensesList(
+        expenses: _registeredExpenses,
+        onRemoveExpense: removeExpense,
+      );
+    }
     return Scaffold(
-      appBar: AppBar(actions: [
-        IconButton(
-          onPressed: inputForExpenses,
-          icon: const Icon(Icons.add_box_sharp),
-        ),
-      ], title: const Text(" Expense Tracker")),
-      body: Column(
-        children: [
-          const Text('graph yet to come'),
-          Expanded(
-            child: ExpensesList(expenses: _registeredExpenses),
+      appBar: AppBar(
+        actions: [
+          IconButton(
+            onPressed: inputForExpenses,
+            icon: const Icon(Icons.add_box_sharp),
           ),
         ],
+        title: const Text(" Expense Tracker"),
       ),
+      body: width < 600
+          ? Column(
+              children: [
+                Chart(expenses: _registeredExpenses),
+                Expanded(child: initialScreen),
+              ],
+            )
+          : Row(
+              children: [
+                Chart(expenses: _registeredExpenses),
+                Expanded(child: initialScreen),
+              ],
+            ),
     );
   }
 }
